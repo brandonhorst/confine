@@ -1,0 +1,49 @@
+{
+  "name": "simple-json-schema",
+  "version": "1.0.0",
+  "description": "Simple JSON schema implementation designed to be used for JSON configuration files",
+  "main": "lib/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha",
+    "lint": "standard",
+    "validate": "standard && mocha",
+    "cover": "istanbul cover _mocha test -- -R dot && istanbul report text",
+    "coveralls": "istanbul cover _mocha test --report lcovonly -- -R dot && cat coverage/lcov.info | coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brandonhorst/simple-json-schema"
+  },
+  "keywords": [
+    "json",
+    "schema",
+    "json-schema",
+    "jsonschema",
+    "config",
+    "configuration",
+    "settings",
+    "simple",
+    "coerce",
+    "validate",
+    "custom",
+    "atom"
+  ],
+  "author": "@brandonhorst",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brandonhorst/simple-json-schema/issues"
+  },
+  "homepage": "https://github.com/brandonhorst/simple-json-schema",
+  "devDependencies": {
+    "chai": "^2.0.0",
+    "coveralls": "^2.11.2",
+    "istanbul": "^0.3.5",
+    "mocha": "^2.1.0"
+  },
+  "dependencies": {
+    "lodash": "^3.1.0"
+  }
+}
