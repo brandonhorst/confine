@@ -1,18 +1,26 @@
-# simple-json-schema
-We live in a post-Sublime Text age. The cool way to store persistant state is in raw JSON. `simple-json-schema` makes it easy to make some simple assertions about what is in that JSON before passing it to your application logic.
+# `confine` finely-tuned configuration
 
-It works similar to the [Config system in the Atom Editor](https://atom.io/docs/api/v0.179.0/Config) but without coercion and with custom types.
+[![Build Status](https://img.shields.io/travis/brandonhorst/confine.svg?style=flat)](https://travis-ci.org/brandonhorst/confine)
+[![Coverage Status](https://img.shields.io/coveralls/brandonhorst/confine.svg?style=flat)](https://coveralls.io/r/brandonhorst/confine)
+[![npm](http://img.shields.io/npm/v/confine.svg?style=flat)]()
+
+We live in a post-Sublime Text age. The cool way to store persistant state is in raw JSON. `confine` makes it easy to make some simple assertions about what is in that JSON before passing it to your application logic.
+
+Clearly specifying configuration also gives us power when it comes to GUI auto-generation. For example, see [`react-confine`](https://github.com/brandonhorst/react-confine).
+
+`confine` works similarly to the [Config system](https://atom.io/docs/api/v0.179.0/Config) in the Atom editor, but with no type coercion. It is also modular and extendable, with support for custom types.
 
 ## Installation
 
 ```sh
-npm install simple-json-schema
+npm install confine
 ```
 
 ## Usage
 
 ```js
-var parser = new (require('./.'))()
+var Confine = require('confine')
+var confine = new Confine()
 var schema = {
   type: 'object',
   properties: {
@@ -42,9 +50,9 @@ var object = {
   girlfriend: 'Mary Jane'
 }
 
-console.log(parser.validateSchema(schema)) // true
-console.log(parser.validate(object, schema)) // true
-console.log(parser.normalize(object, schema)) /* {
+console.log(confine.validateSchema(schema)) // true
+console.log(confine.validate(object, schema)) // true
+console.log(confine.normalize(object, schema)) /* {
   name: 'Peter Parker',
   age: 17,
   income: 38123.52,
@@ -57,42 +65,43 @@ console.log(parser.normalize(object, schema)) /* {
 
 ## Methods
 
-#### `parser.validateSchema(schema)`
+#### `confine.validateSchema(schema)`
 
 - Returns a boolean indicating if `schema` is valid.
 
-#### `parser.validate(obj, schema)`
+#### `confine.validate(obj, schema)`
 
 - Returns a boolean indicating if `obj` is valid according to `schema`
 
-#### `parser.normalize(obj, schema)`
+#### `confine.normalize(obj, schema)`
 
 - Returns an adjusted representation of `obj`, filling in defaults and removing unnecessary fields.
 - Throws an error if `validateSchema` returns `false`
 
 ## Custom Types
 
-You can add custom types to the parser by setting properties on `parser.types`. By default, it understands `integer`, `number`, `string`, `boolean`, `array`, and `object`. You can also `delete` those types if you need to.
+You can add custom types by setting properties on `confine.types`. By default, it understands `integer`, `number`, `string`, `boolean`, `array`, and `object`.
 
 ```js
-parser.types['typeName'] = {
-  validateSchema: function (schema, parser) {...},
-  validate: function (obj, schema, parser) {...},
-  normalize: function (obj, schema, parser) {...} // optional
+confine.types['typeName'] = {
+  validateSchema: function (schema, confine) {...},
+  validate: function (obj, schema, confine) {...},
+  normalize: function (obj, schema, confine) {...} // optional
 }
+
 ```
 
-#### `validateSchema(schema, parser)`
+#### `validateSchema(schema, confine)`
 
 - Should return a boolean indicating if `schema` is valid.
-- `parser` is provided for subschema parsing (see `lib/array`).
+- `confine` is provided for subschema parsing (see `lib/array`).
 
-#### `validate(obj, schema, parser)`
+#### `validate(obj, schema, confine)`
 
 - should return a boolean indiciating if the `obj` fits `schema`.
-- `parser` is provided for subschema parsing (see `lib/array`).
+- `confine` is provided for subschema parsing (see `lib/array`).
 
-#### `normalize(obj, schema, parser) // optional`
+#### `normalize(obj, schema, confine) // optional`
 - should return a version of obj adjusted to fit the schema
 - if not provided, `normalize` will return `default` if it exists, or `undefined`
 - do not use this to coerce values - this should only be used for adjusting subschema parsing
