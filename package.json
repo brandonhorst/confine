@@ -1,5 +1,5 @@
 {
-  "name": "simple-json-schema",
+  "name": "confine",
   "version": "1.0.0",
   "description": "Simple JSON schema implementation designed to be used for JSON configuration files",
   "main": "lib/index.js",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/brandonhorst/simple-json-schema"
+    "url": "https://github.com/brandonhorst/confine"
   },
   "keywords": [
     "json",
@@ -23,6 +23,8 @@
     "json-schema",
     "jsonschema",
     "config",
+    "confine",
+    "react",
     "configuration",
     "settings",
     "simple",
@@ -34,9 +36,9 @@
   "author": "@brandonhorst",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brandonhorst/simple-json-schema/issues"
+    "url": "https://github.com/brandonhorst/confine/issues"
   },
-  "homepage": "https://github.com/brandonhorst/simple-json-schema",
+  "homepage": "https://github.com/brandonhorst/confine",
   "devDependencies": {
     "chai": "^2.0.0",
     "coveralls": "^2.11.2",
