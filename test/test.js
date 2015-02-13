@@ -13,14 +13,22 @@ describe('builtins', function () {
       expect(s.getDefault(schema)).to.equal(4)
     })
     it('validateSchema', function () {
+      // default must be in enum
       expect(s.validateSchema({type: 'integer', enum: [1, 2], default: 2})).to.be.true
-      expect(s.validateSchema({type: 'integer', enum: [1, 2], max: 2})).to.be.true
-      expect(s.validateSchema({type: 'integer', default: 1, max: 2})).to.be.true
-
       expect(s.validateSchema({type: 'integer', enum: [0, 1], default: 2})).to.be.false
-      expect(s.validateSchema({type: 'integer', enum: [0, 1], min: 2})).to.be.false
+
+      // default must be valid
+      expect(s.validateSchema({type: 'integer', default: 1, max: 2})).to.be.true
       expect(s.validateSchema({type: 'integer', default: 1, min: 2})).to.be.false
 
+      // all enums must be valid
+      expect(s.validateSchema({type: 'integer', enum: [1, 2], max: 2})).to.be.true
+      expect(s.validateSchema({type: 'integer', enum: [0, 1], min: 2})).to.be.false
+
+      // enum must be unique
+      expect(s.validateSchema({type: 'integer', enum: [0, 0]})).to.be.false
+
+      // types must exist
       expect(s.validateSchema({type: 'flobnarb'})).to.be.false
     })
     it('normalize', function () {
