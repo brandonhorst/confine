@@ -219,6 +219,12 @@ describe('builtins', function () {
       expect(s.validateSchema({type: 'array', items: {type: 'integer'}})).to.be.true
       expect(s.validateSchema({type: 'array'})).to.be.false
     })
+    it('normalize', function () {
+      // returns empty self
+      expect(s.normalize([], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
+      expect(s.normalize(null, {type: 'array', items: {type: 'integer', default: 3}})).to.be.undefined
+      expect(s.normalize(undefined, {type: 'array', items: {type: 'integer', default: 3}})).to.be.undefined
+    })
   })
 
   describe('object', function () {
@@ -243,6 +249,8 @@ describe('builtins', function () {
     it('normalize', function () {
       // sets defaults
       expect(s.normalize({}, {type: 'object', properties: {test: {type: 'integer', default: 3}}})).to.eql({test: 3})
+      expect(s.normalize(null, {type: 'object', properties: {test: {type: 'integer', default: 3}}})).to.eql({test: 3})
+      expect(s.normalize(undefined, {type: 'object', properties: {test: {type: 'integer', default: 3}}})).to.eql({test: 3})
       // ignores empties
       expect(s.normalize({}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
       // removes extras
