@@ -220,10 +220,16 @@ describe('builtins', function () {
       expect(s.validateSchema({type: 'array'})).to.be.false
     })
     it('normalize', function () {
-      // returns empty self
+      // returns empty array
+      expect(s.normalize([], {type: 'array', items: {type: 'integer'}})).to.eql([])
+      expect(s.normalize(null, {type: 'array', items: {type: 'integer'}})).to.eql([])
+      expect(s.normalize(undefined, {type: 'array', items: {type: 'integer'}})).to.eql([])
       expect(s.normalize([], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
-      expect(s.normalize(null, {type: 'array', items: {type: 'integer', default: 3}})).to.be.undefined
-      expect(s.normalize(undefined, {type: 'array', items: {type: 'integer', default: 3}})).to.be.undefined
+      expect(s.normalize(null, {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
+      expect(s.normalize(undefined, {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
+
+      // maps children to their defaults
+      expect(s.normalize([null], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([3])
     })
   })
 
