@@ -12,6 +12,11 @@ describe('builtins', function () {
       var schema = {type: 'integer', default: 4}
       expect(s.getDefault(schema)).to.equal(4)
     })
+    it('validate', function () {
+      // null inputs are always valid
+      expect(s.validate(null, {type: 'string'})).to.be.true
+      expect(s.validate(undefined, {type: 'string'})).to.be.true
+    })
     it('validateSchema', function () {
       // default must be in enum
       expect(s.validateSchema({type: 'integer', enum: [1, 2], default: 2})).to.be.true
