@@ -51,7 +51,6 @@ var object = {
 }
 
 console.log(confine.validateSchema(schema)) // true
-console.log(confine.validate(object, schema)) // true
 console.log(confine.normalize(object, schema)) /* {
   name: 'Peter Parker',
   age: 17,
@@ -67,15 +66,17 @@ console.log(confine.normalize(object, schema)) /* {
 
 #### `confine.validateSchema(schema)`
 
-- Returns a boolean indicating if `schema` is valid. This should be checked for any untrusted schema before calling any other method - using an invalid schema with the other `confine` methods results in undetermined behavior.
+- Returns a `boolean` indicating if `schema` is valid. This should be checked for any untrusted schema before calling any other method - using an invalid schema with the other `confine` methods results in undetermined behavior.
 
 #### `confine.validate(obj, schema)`
 
-- Returns a boolean indicating if `obj` is valid according to `schema`
+- Returns a `boolean` indicating if `obj` is valid according to `schema`.
+- A schema being valid means that `_.isEqual(confine.normalize(obj, schema), obj)`. That is, `normalize`ing the object will not change it.
 
 #### `confine.normalize(obj, schema)`
 
 - Returns an adjusted representation of `obj`, removing invalid or unnecessary fields and filling in defaults.
+- Please note that you do not need to check `validate` before calling `normalize`. `normalize` expects an invalid `obj`, and will adjust it appropriately. You still must call `validateSchema`, though.
 
 ## Confine Schemas
 
@@ -85,6 +86,8 @@ Confine uses a simplified version of JSON Schema to describe JSON objects. Each 
 - `enum` is an array that enumerates all possible options the value can take. Any input not listed in this array will be rejected. Every array emtry must be a valid object itself (that is to say, `_.every(schema.enum, function (e) {return confine.validate(e, schema)})` must return `true`.
 
 Please see `test/test.js` for examples of all of these types in use.
+
+Notably, it is not possible to make a schema element `required` in `confine`. In an effort to achieve maximum flexibility, `confine.validate(undefined, schema)` will *always* return `true`. If you do not want the output of `normalize` to be missing values, add a `default`, which will always be returned by `normalize` for invalid or `undefined` inputs. If you want a type to be nullable, add `'null'` to the type list. See `null` for examples.
 
 ### `object`
 
@@ -165,13 +168,18 @@ Specifies JSON null.
 /// null
 ```
 
-### multiple types
+- `null` works slightly differently than other types. `confine.normalize(obj, {type: 'null'})` will *always* return `null`, even if `_.isUndefined(obj)`. Thus, `confine.validate(undefined, {type: 'null'})` returns `false`.
+- This means that `confine.normalize(obj, {type: ['string', 'null']})` will never return `undefined`. If `obj` is not a valid `string`, it will return `null`. This is a good way of ensuring that there is *something* in the `normalize` output (even if it's `null`).
+
+### Multiple types
 
 `type` can be an array of type names. All type names must be valid. When `normalize`ing `undefined`, the returned value will be the first one that does not return `undefined`, or `undefined` if all types do.
 
+Please note that because `number` includes integers, `{type: ['number', 'integer]}` is strictly equivalent to `{type: 'number'}` alone.
+
 ## Custom Types
 
-You can add custom types by setting properties on `confine.types`. By default, it understands `integer`, `number`, `string`, `boolean`, `array`, and `object`. A custom type is simply an object that contains 2 or 3 of the following functions.
+You can add custom types by setting properties on `confine.types`. By default, it understands `integer`, `number`, `string`, `boolean`, `array`, `object`, and `null`. A custom type is simply an object that contains the following functions.
 
 ```js
 confine.types['typeName'] = {

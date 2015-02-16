@@ -9,8 +9,9 @@ describe('builtins', function () {
   var s = new Confine()
   describe('general', function () {
     it('validate', function () {
-      // undefined inputs are always valid
+      // undefined inputs are only valid if no default is provided
       expect(s.validate(undefined, {type: 'string'})).to.be.true
+      expect(s.validate(undefined, {type: 'string', default: 'test'})).to.be.false
     })
     it('validateSchema', function () {
       // enum must be an array
@@ -200,6 +201,7 @@ describe('builtins', function () {
     it('validate type', function () {
       var schema = {type: 'null'}
       expect(s.validate(null, schema)).to.be.true
+      expect(s.validate(undefined, schema)).to.be.false
       expect(s.validate(false, schema)).to.be.false
       expect(s.validate('str', schema)).to.be.false
       expect(s.validate(1, schema)).to.be.false
@@ -209,6 +211,16 @@ describe('builtins', function () {
     })
     it('validateSchema', function () {
       expect(s.validateSchema({type: 'null'})).to.be.true
+    })
+    it('normalize', function () {
+      expect(s.normalize(undefined, {type: 'null'})).to.be.null
+      expect(s.normalize(null, {type: 'null'})).to.be.null
+      expect(s.normalize('3', {type: 'null'})).to.be.null
+      expect(s.normalize({}, {type: 'null'})).to.be.null
+      expect(s.normalize(undefined, {type: ['string', 'null']})).to.be.null
+      expect(s.normalize(undefined, {type: ['null', 'array']})).to.be.null
+      expect(s.normalize(undefined, {type: ['array', 'null']})).to.eql([])
+      expect(s.normalize([], {type: ['null', 'array']})).to.eql([])
     })
   })
 
@@ -251,8 +263,10 @@ describe('builtins', function () {
       // accepts missing properties
       expect(s.validate({}, schema)).to.be.true
       expect(s.validate({myInt: 1}, schema)).to.be.true
-      // accepts additional properties
-      expect(s.validate({myInt: 1, another: 2}, schema)).to.be.true
+
+      // rejects additional properties
+      expect(s.validate({myInt: 1, another: 2}, schema)).to.be.false
+
       expect(s.validate({myInt: '1'}, schema)).to.be.false
       expect(s.validate([], schema)).to.be.false
       expect(s.validate('str', schema)).to.be.false
@@ -319,6 +333,8 @@ describe('builtins', function () {
 
       expect(s.normalize(3, {type: ['integer', 'string'], enum: [3, 'test']})).to.equal(3)
       expect(s.normalize('test', {type: ['integer', 'string'], enum: [3, 'test']})).to.equal('test')
+
+      expect(s.normalize(3, {type: ['null', 'integer']})).to.equal(3)
     })
   })
 })
