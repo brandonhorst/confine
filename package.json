@@ -1,6 +1,6 @@
 {
   "name": "confine",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Simple JSON schema implementation designed to be used for JSON configuration files",
   "main": "lib/index.js",
   "directories": {
