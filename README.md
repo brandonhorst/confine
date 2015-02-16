@@ -8,7 +8,7 @@ We live in a post-Sublime Text age. The cool way to store persistant state is in
 
 Clearly specifying configuration also gives us power when it comes to GUI auto-generation. For example, see [`react-confine`](https://github.com/brandonhorst/react-confine).
 
-`confine` works similarly to the [Config system](https://atom.io/docs/api/v0.179.0/Config) in the Atom editor, but with no type coercion. It is also modular and extendable, with support for custom types.
+`confine` works similarly to the [Config system](https://atom.io/docs/api/v0.179.0/Config) in the Atom editor, but with no type coercion. It is also modular and extendable, with support for custom types. `confine` also supports the `null` type.
 
 ## Installation
 
@@ -163,10 +163,15 @@ Specifies JSON null.
 { type: 'null' }
 
 /// null
+```
+
+### multiple types
+
+`type` can be an array of type names. All type names must be valid. When `normalize`ing `undefined`, the returned value will be the first one that does not return `undefined`, or `undefined` if all types do.
 
 ## Custom Types
 
-You can add custom types by setting properties on `confine.types`. By default, it understands `integer`, `number`, `string`, `boolean`, `array`, and `object`.
+You can add custom types by setting properties on `confine.types`. By default, it understands `integer`, `number`, `string`, `boolean`, `array`, and `object`. A custom type is simply an object that contains 2 or 3 of the following functions.
 
 ```js
 confine.types['typeName'] = {

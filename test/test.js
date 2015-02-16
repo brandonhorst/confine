@@ -278,4 +278,47 @@ describe('builtins', function () {
       expect(s.normalize({not: 3}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
     })
   })
+
+  describe('multiple', function () {
+    it('validateSchema', function () {
+      expect(s.validateSchema({type: ['integer', 'string']})).to.be.true
+      expect(s.validateSchema({type: ['integer']})).to.be.true
+      expect(s.validateSchema({type: ['integer', 'string'], max: 3})).to.be.true
+      expect(s.validateSchema({type: ['integer', 'flobnarb']})).to.be.false
+
+      expect(s.validateSchema({type: ['integer', 'string'], default: 3})).to.be.true
+      expect(s.validateSchema({type: ['integer', 'string'], default: 'test'})).to.be.true
+
+      expect(s.validateSchema({type: ['integer', 'string'], enum: ['test']})).to.be.true
+      expect(s.validateSchema({type: ['integer', 'string'], enum: [3]})).to.be.true
+      expect(s.validateSchema({type: ['integer', 'string'], enum: [3, 'test']})).to.be.true
+    })
+    it('validate', function () {
+      expect(s.validate(1, {type: ['integer', 'string']})).to.be.true
+      expect(s.validate('test', {type: ['integer', 'string']})).to.be.true
+      expect(s.validate('test', {type: ['integer', 'string'], max: 4})).to.be.true
+      expect(s.validate(5, {type: ['integer', 'string'], max: 4})).to.be.false
+      expect(s.validate(false, {type: ['integer', 'string']})).to.be.false
+      expect(s.validate({}, {type: ['integer', 'string']})).to.be.false
+      expect(s.validate([], {type: ['integer', 'string']})).to.be.false
+      expect(s.validate(3.2, {type: ['integer', 'string']})).to.be.false
+      expect(s.validate(null, {type: ['integer', 'string']})).to.be.false
+    })
+
+    it('normalize', function () {
+      // when normalizing undefined, the result should the first in the list not undefined
+      expect(s.normalize(undefined, {type: ['integer', 'string']})).to.be.undefined
+      expect(s.normalize(undefined, {type: ['array', 'integer']})).to.eql([])
+      expect(s.normalize(undefined, {type: ['integer', 'array']})).to.eql([])
+      expect(s.normalize(undefined, {type: ['integer', 'array', 'object']})).to.eql([])
+
+      expect(s.normalize(undefined, {type: ['string', 'integer'], default: 3})).to.equal(3)
+      expect(s.normalize(undefined, {type: ['string', 'integer'], default: 'test'})).to.equal('test')
+      expect(s.normalize(3, {type: ['integer', 'string']})).to.equal(3)
+      expect(s.normalize('test', {type: ['integer', 'string']})).to.equal('test')
+
+      expect(s.normalize(3, {type: ['integer', 'string'], enum: [3, 'test']})).to.equal(3)
+      expect(s.normalize('test', {type: ['integer', 'string'], enum: [3, 'test']})).to.equal('test')
+    })
+  })
 })
