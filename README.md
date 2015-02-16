@@ -87,8 +87,6 @@ Confine uses a simplified version of JSON Schema to describe JSON objects. Each 
 
 Please see `test/test.js` for examples of all of these types in use.
 
-Note that in `confine`, all schema entities are required. That is, `confine.validate(undefined, schema)` will *always* return `false`. This means that in an `object`, the property will simply not be present after a `normalize`. If you do not want the output of `normalize` to be missing values, add a `default`, which will always be returned by `normalize` for invalid or `undefined` inputs. If you want a type to be nullable, add `'null'` to the type list. See `null` for more information.
-
 ### `object`
 
 Specifies a JSON object mapping string keys to any JSON entity. `properties` should be itself an object mapping string keys to sub-schemas.
