@@ -1,23 +1,21 @@
 /*eslint-env mocha*/
 var chai = require('chai')
 var expect = chai.expect
-var SchemaManager = require('..')
+var Confine = require('..')
 
 chai.config.includeStack = true
 
 describe('builtins', function () {
-  var s = new SchemaManager()
+  var s = new Confine()
   describe('general', function () {
-    it('getDefault', function () {
-      var schema = {type: 'integer', default: 4}
-      expect(s.getDefault(schema)).to.equal(4)
-    })
     it('validate', function () {
-      // null inputs are always valid
-      expect(s.validate(null, {type: 'string'})).to.be.true
+      // undefined inputs are always valid
       expect(s.validate(undefined, {type: 'string'})).to.be.true
     })
     it('validateSchema', function () {
+      // enum must be an array
+      expect(s.validateSchema({type: 'integer', enum: 2})).to.be.false
+
       // default must be in enum
       expect(s.validateSchema({type: 'integer', enum: [1, 2], default: 2})).to.be.true
       expect(s.validateSchema({type: 'integer', enum: [0, 1], default: 2})).to.be.false
@@ -45,10 +43,6 @@ describe('builtins', function () {
       expect(s.normalize('x', {type: 'integer', default: 3})).to.equal(3)
 
       expect(s.normalize(3, {type: 'integer'})).to.equal(3)
-
-      expect(function () {
-        s.normalize({type: 'flobnarb'})
-      }).to.throw(Error)
     })
   })
 
@@ -202,6 +196,22 @@ describe('builtins', function () {
     })
   })
 
+  describe('null', function () {
+    it('validate type', function () {
+      var schema = {type: 'null'}
+      expect(s.validate(null, schema)).to.be.true
+      expect(s.validate(false, schema)).to.be.false
+      expect(s.validate('str', schema)).to.be.false
+      expect(s.validate(1, schema)).to.be.false
+      expect(s.validate({}, schema)).to.be.false
+      expect(s.validate([], schema)).to.be.false
+      expect(s.validate([true], schema)).to.be.false
+    })
+    it('validateSchema', function () {
+      expect(s.validateSchema({type: 'null'})).to.be.true
+    })
+  })
+
   describe('array', function () {
     it('validate type', function () {
       var schema = {type: 'array', items: {type: 'integer'}}
@@ -217,6 +227,7 @@ describe('builtins', function () {
     })
     it('validateSchema', function () {
       expect(s.validateSchema({type: 'array', items: {type: 'integer'}})).to.be.true
+      expect(s.validateSchema({type: 'array', items: {type: 'flobnarb'}})).to.be.false
       expect(s.validateSchema({type: 'array'})).to.be.false
     })
     it('normalize', function () {
@@ -227,9 +238,10 @@ describe('builtins', function () {
       expect(s.normalize([], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
       expect(s.normalize(null, {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
       expect(s.normalize(undefined, {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
-
       // maps children to their defaults
       expect(s.normalize([null], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([3])
+      // ignores undefineds
+      expect(s.normalize([3, undefined], {type: 'array', items: {type: 'integer'}})).to.eql([3])
     })
   })
 
@@ -250,6 +262,8 @@ describe('builtins', function () {
     })
     it('validateSchema', function () {
       expect(s.validateSchema({type: 'object', properties: {myInt: {type: 'integer'}}})).to.be.true
+      expect(s.validateSchema({type: 'object', properties: {myInt: {type: 'flobnarb'}}})).to.be.false
+      expect(s.validateSchema({type: 'object', properties: {myInt: {type: 'flobnarb'}}})).to.be.false
       expect(s.validateSchema({type: 'object'})).to.be.false
     })
     it('normalize', function () {
@@ -259,6 +273,7 @@ describe('builtins', function () {
       expect(s.normalize(undefined, {type: 'object', properties: {test: {type: 'integer', default: 3}}})).to.eql({test: 3})
       // ignores empties
       expect(s.normalize({}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
+      expect(s.normalize({test: undefined}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
       // removes extras
       expect(s.normalize({not: 3}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
     })

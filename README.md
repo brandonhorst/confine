@@ -67,7 +67,7 @@ console.log(confine.normalize(object, schema)) /* {
 
 #### `confine.validateSchema(schema)`
 
-- Returns a boolean indicating if `schema` is valid.
+- Returns a boolean indicating if `schema` is valid. This should be checked for any untrusted schema before calling any other method - using an invalid schema with the other `confine` methods results in undetermined behavior.
 
 #### `confine.validate(obj, schema)`
 
@@ -75,8 +75,94 @@ console.log(confine.normalize(object, schema)) /* {
 
 #### `confine.normalize(obj, schema)`
 
-- Returns an adjusted representation of `obj`, filling in defaults and removing unnecessary fields.
-- Throws an error if `validateSchema` returns `false`
+- Returns an adjusted representation of `obj`, removing invalid or unnecessary fields and filling in defaults.
+
+## Confine Schemas
+
+Confine uses a simplified version of JSON Schema to describe JSON objects. Each schema is a JSON object that contains a `type` property. 7 types are built-in, and custom types can also be added. Types may make use of additional properties, as defined below. Additionally, all types make use of 2 additional properties: `default` and `enum`.
+
+- `default` is an object that will be returned by `confine.normalize` or `confine.getDefault` if the provided input is `undefined`. It must be a valid object itself (that is to say, `confine.validate(schema.default, schema)` must return `true`).
+- `enum` is an array that enumerates all possible options the value can take. Any input not listed in this array will be rejected. Every array emtry must be a valid object itself (that is to say, `_.every(schema.enum, function (e) {return confine.validate(e, schema)})` must return `true`.
+
+Please see `test/test.js` for examples of all of these types in use.
+
+### `object`
+
+Specifies a JSON object mapping string keys to any JSON entity. `properties` should be itself an object mapping string keys to sub-schemas.
+
+```js
+{ type: 'object'
+  properties: {
+    myInt: { type: 'integer' }
+    myString: { type: 'string' } } }
+
+// { myInt: 3, myString: 'something' }
+```
+
+### `array`
+
+Specifies a JSON array - an ordered list of entities, all of the same type. `items` should be a single sub-schema that all array entries match.
+
+```js
+{ type: 'array',
+  items: { type: 'integer' } }
+
+// [ 1, 2, 3 ]
+```
+
+### `number`
+
+Specifies a JSON number (integer or decimal). This is held to the same limitations of all numbers in Javascript. `max` and `min` can (inclusively) limit possible number ranges.
+
+```js
+{ type: 'number',
+  min: 1.5,
+  max: 11 }
+
+// 7.2
+```
+
+### `integer`
+
+Specifies an integer. This is held to the same limitations of all integers in Javascript. `max` and `min` can (inclusively) limit possible number ranges.
+
+```js
+{ type: 'integer',
+  min: 4,
+  max: 8 }
+
+// 6
+```
+
+### `string`
+
+Specifies a JSON string. `regex` can limit the possible input given a Javascript RegExp object, or a string that can be evaulated as a regular expression.
+
+```js
+{ type: 'string',
+  regex: /.*/ }
+
+// 'something'
+```
+
+### `boolean`
+
+Specifies a JSON boolean.
+
+```js
+{ type: 'boolean' }
+
+/// false
+```
+
+### `null`
+
+Specifies JSON null.
+
+```js
+{ type: 'null' }
+
+/// null
 
 ## Custom Types
 
