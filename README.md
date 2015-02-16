@@ -87,7 +87,7 @@ Confine uses a simplified version of JSON Schema to describe JSON objects. Each 
 
 Please see `test/test.js` for examples of all of these types in use.
 
-Notably, it is not possible to make a schema element `required` in `confine`. In an effort to achieve maximum flexibility, `confine.validate(undefined, schema)` will *always* return `true`. If you do not want the output of `normalize` to be missing values, add a `default`, which will always be returned by `normalize` for invalid or `undefined` inputs. If you want a type to be nullable, add `'null'` to the type list. See `null` for examples.
+Note that in `confine`, all schema entities are required. That is, `confine.validate(undefined, schema)` will *always* return `false`. This means that in an `object`, the property will simply not be present after a `normalize`. If you do not want the output of `normalize` to be missing values, add a `default`, which will always be returned by `normalize` for invalid or `undefined` inputs. If you want a type to be nullable, add `'null'` to the type list. See `null` for more information.
 
 ### `object`
 
