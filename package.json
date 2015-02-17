@@ -8,8 +8,6 @@
   },
   "scripts": {
     "test": "mocha",
-    "lint": "standard",
-    "validate": "standard && mocha",
     "cover": "istanbul cover _mocha test -- -R dot && istanbul report text",
     "coveralls": "istanbul cover _mocha test --report lcovonly -- -R dot && cat coverage/lcov.info | coveralls"
   },
