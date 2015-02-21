@@ -241,6 +241,9 @@ describe('builtins', function () {
       expect(s.validateSchema({type: 'array', items: {type: 'integer'}})).to.be.true
       expect(s.validateSchema({type: 'array', items: {type: 'flobnarb'}})).to.be.false
       expect(s.validateSchema({type: 'array'})).to.be.false
+      // defaults
+      var schema = {type: 'array', items: {type: 'object', properties: {a: {type: 'string'}}}, default: [{a: 'a'}]}
+      expect(s.validateSchema(schema)).to.be.true
     })
     it('normalize', function () {
       // returns empty array
@@ -254,6 +257,11 @@ describe('builtins', function () {
       expect(s.normalize([null], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([3])
       // ignores undefineds
       expect(s.normalize([3, undefined], {type: 'array', items: {type: 'integer'}})).to.eql([3])
+      // accepts defaults of array
+      expect(s.normalize(null, {type: 'array', items: {type: 'integer'}, default: [3, 3]})).to.eql([3, 3])
+      // accepts objects as defaults
+      var schema = {type: 'array', items: {type: 'object', properties: {a: {type: 'string'}}}, default: [{a: 'a'}]}
+      expect(s.normalize(null, schema)).to.eql([{a: 'a'}])
     })
   })
 
@@ -290,6 +298,8 @@ describe('builtins', function () {
       expect(s.normalize({test: undefined}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
       // removes extras
       expect(s.normalize({not: 3}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
+      // defaults of object
+      expect(s.normalize(undefined, {type: 'object', properties: {test: {type: 'integer'}}, default: {test: 3}})).to.eql({test: 3})
     })
   })
 
