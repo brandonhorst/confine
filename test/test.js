@@ -1,4 +1,5 @@
-/*eslint-env mocha*/
+/* eslint-env mocha */
+var _ = require('lodash')
 var chai = require('chai')
 var expect = chai.expect
 var Confine = require('..')
@@ -346,5 +347,38 @@ describe('builtins', function () {
 
       expect(s.normalize(3, {type: ['null', 'integer']})).to.equal(3)
     })
+  })
+})
+
+describe('custom', function () {
+  var custom = {
+    validate: function (obj, schema) {
+      return obj && (obj.test === 'a' || obj.test === 'b')
+    },
+    validateSchema: function (schema) {
+      return schema.test === 'c'
+    },
+    normalize: function (obj, schema) {
+      return {test: 'a', another: 'd'}
+    }
+  }
+  var s = new Confine()
+  s.types['custom'] = custom
+
+  it('validateSchema', function () {
+    expect(s.validateSchema({type: 'custom'})).to.be.false
+    expect(s.validateSchema({type: 'custom', test: 'c'})).to.be.true
+    expect(s.validateSchema({type: 'custom-something'})).to.be.false
+  })
+  it('validate', function () {
+    expect(s.validate({test: 'a'}, {type: 'custom', test: 'c'})).to.be.true
+    expect(s.validate({test: 'b'}, {type: 'custom', test: 'c'})).to.be.true
+    expect(s.validate({test: 'c'}, {type: 'custom', test: 'c'})).to.be.false
+    expect(s.validate(3, {type: 'custom', test: 'c'})).to.be.false
+    expect(s.validate('a', {type: 'custom', test: 'c'})).to.be.false
+  })
+  it('normalize', function () {
+    expect(s.normalize(undefined, {type: 'custom', test: 'c'})).to.eql({test: 'a', another: 'd'})
+    expect(s.normalize({test: 'b'}, {type: 'custom', test: 'c'})).to.eql({test: 'b'})
   })
 })
