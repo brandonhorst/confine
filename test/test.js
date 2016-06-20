@@ -36,6 +36,7 @@ describe('builtins', function () {
       // types must exist
       expect(s.validateSchema({type: 'flobnarb'})).to.be.false
     })
+
     it('normalize', function () {
       expect(s.normalize(undefined, {type: 'integer'})).to.be.undefined
       expect(s.normalize(null, {type: 'integer'})).to.be.undefined
@@ -45,6 +46,17 @@ describe('builtins', function () {
       expect(s.normalize('x', {type: 'integer', default: 3})).to.equal(3)
 
       expect(s.normalize(3, {type: 'integer'})).to.equal(3)
+    })
+
+    it('clean', function () {
+      expect(s.clean(undefined, {type: 'integer'})).to.be.undefined
+      expect(s.clean(null, {type: 'integer'})).to.be.undefined
+      expect(s.clean('x', {type: 'integer'})).to.be.undefined
+      expect(s.clean(undefined, {type: 'integer', default: 3})).to.be.undefined
+      expect(s.clean(null, {type: 'integer', default: 3})).to.be.undefined
+      expect(s.clean('x', {type: 'integer', default: 3})).to.be.undefined
+
+      expect(s.clean(3, {type: 'integer'})).to.equal(3)
     })
   })
 
@@ -223,6 +235,16 @@ describe('builtins', function () {
       expect(s.normalize(undefined, {type: ['array', 'null']})).to.eql([])
       expect(s.normalize([], {type: ['null', 'array']})).to.eql([])
     })
+    it('clean', function () {
+      expect(s.clean(undefined, {type: 'null'})).to.be.null
+      expect(s.clean(null, {type: 'null'})).to.be.null
+      expect(s.clean('3', {type: 'null'})).to.be.null
+      expect(s.clean({}, {type: 'null'})).to.be.null
+      expect(s.clean(undefined, {type: ['string', 'null']})).to.be.null
+      expect(s.clean(undefined, {type: ['null', 'array']})).to.eql(null)
+      expect(s.clean(undefined, {type: ['array', 'null']})).to.eql(null)
+      expect(s.clean([], {type: ['null', 'array']})).to.eql([])
+    })
   })
 
   describe('array', function () {
@@ -256,13 +278,35 @@ describe('builtins', function () {
       expect(s.normalize(undefined, {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
       // maps children to their defaults
       expect(s.normalize([null], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([3])
-      // ignores undefineds
+      // ignores undefined with no default
       expect(s.normalize([3, undefined], {type: 'array', items: {type: 'integer'}})).to.eql([3])
+      // maps undefined to default
+      expect(s.normalize([3, undefined], {type: 'array', items: {type: 'integer', default: 4}})).to.eql([3, 4])
       // accepts defaults of array
       expect(s.normalize(null, {type: 'array', items: {type: 'integer'}, default: [3, 3]})).to.eql([3, 3])
+      expect(s.normalize([], {type: 'array', items: {type: 'integer'}, default: [3, 3]})).to.eql([])
       // accepts objects as defaults
       var schema = {type: 'array', items: {type: 'object', properties: {a: {type: 'string'}}}, default: [{a: 'a'}]}
       expect(s.normalize(null, schema)).to.eql([{a: 'a'}])
+    })
+    it('clean', function () {
+      // returns empty array
+      expect(s.clean([], {type: 'array', items: {type: 'integer'}})).to.eql([])
+      expect(s.clean(null, {type: 'array', items: {type: 'integer'}})).to.eql(undefined)
+      expect(s.clean(undefined, {type: 'array', items: {type: 'integer'}})).to.eql(undefined)
+      expect(s.clean([], {type: 'array', items: {type: 'integer', default: 3}})).to.eql([])
+      expect(s.clean(null, {type: 'array', items: {type: 'integer', default: 3}})).to.eql(undefined)
+      expect(s.clean(undefined, {type: 'array', items: {type: 'integer', default: 3}})).to.eql(undefined)
+      // if there are nulls, export an object
+      expect(s.clean([null], {type: 'array', items: {type: 'integer', default: 3}})).to.eql({length: 1})
+      expect(s.clean([3, undefined], {type: 'array', items: {type: 'integer'}})).to.eql({length: 2, 0: 3})
+      expect(s.clean(['test', undefined], {type: 'array', items: {type: 'integer'}})).to.eql({length: 2})
+      // accepts defaults of array
+      expect(s.clean(null, {type: 'array', items: {type: 'integer'}, default: [3, 3]})).to.eql(undefined)
+      expect(s.clean([], {type: 'array', items: {type: 'integer'}, default: [3, 3]})).to.eql([])
+      // accepts objects as defaults
+      var schema = {type: 'array', items: {type: 'object', properties: {a: {type: 'string'}}}, default: [{a: 'a'}]}
+      expect(s.clean(null, schema)).to.eql(undefined)
     })
   })
 
@@ -286,7 +330,6 @@ describe('builtins', function () {
     it('validateSchema', function () {
       expect(s.validateSchema({type: 'object', properties: {myInt: {type: 'integer'}}})).to.be.true
       expect(s.validateSchema({type: 'object', properties: {myInt: {type: 'flobnarb'}}})).to.be.false
-      expect(s.validateSchema({type: 'object', properties: {myInt: {type: 'flobnarb'}}})).to.be.false
       expect(s.validateSchema({type: 'object'})).to.be.false
     })
     it('normalize', function () {
@@ -301,6 +344,21 @@ describe('builtins', function () {
       expect(s.normalize({not: 3}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
       // defaults of object
       expect(s.normalize(undefined, {type: 'object', properties: {test: {type: 'integer'}}, default: {test: 3}})).to.eql({test: 3})
+    })
+    it('clean', function () {
+      // sets defaults
+      expect(s.clean({}, {type: 'object', properties: {test: {type: 'integer', default: 3}}})).to.eql({})
+      expect(s.clean(null, {type: 'object', properties: {test: {type: 'integer', default: 3}}})).to.eql(undefined)
+      expect(s.clean(undefined, {type: 'object', properties: {test: {type: 'integer', default: 3}}})).to.eql(undefined)
+      // ignores empties
+      expect(s.clean({}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
+      expect(s.clean({test: undefined}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({})
+      // does not remove extras
+      expect(s.clean({not: 3}, {type: 'object', properties: {test: {type: 'integer'}}})).to.eql({not: 3})
+      // defaults of object
+      expect(s.clean(undefined, {type: 'object', properties: {test: {type: 'integer'}}, default: {test: 3}})).to.eql(undefined)
+      // defaults of object
+      expect(s.clean(undefined, {type: 'object', properties: {test: {type: 'integer', default: 4}}, default: {test: 3}})).to.eql(undefined)
     })
   })
 

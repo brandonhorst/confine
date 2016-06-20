@@ -68,15 +68,32 @@ console.log(confine.normalize(object, schema)) /* {
 
 - Returns a `boolean` indicating if `schema` is valid. This should be checked for any untrusted schema before calling any other method - using an invalid schema with the other `confine` methods results in undetermined behavior.
 
-#### `confine.validate(obj, schema)`
-
-- Returns a `boolean` indicating if `obj` is valid according to `schema`.
-- A schema being valid means that `_.isEqual(confine.normalize(obj, schema), obj)`. That is, `normalize`ing the object will not change it.
-
 #### `confine.normalize(obj, schema)`
 
 - Returns an adjusted representation of `obj`, removing invalid or unnecessary fields and filling in defaults.
+- This method should be used to normalize data before it is passed to the logic that uses it. It ensures strictness about types.
 - Please note that you do not need to check `validate` before calling `normalize`. `normalize` expects an invalid `obj`, and will adjust it appropriately. You still must call `validateSchema`, though.
+
+#### `confine.clean(obj, schema)`
+
+- Returns an adjusted representation of `obj` like `normalize`, but does not remove unnecessary fields or fill in defaults.
+- This method should be used to clean data before it is stored longterm or used by an automatic form generation tool (like [react-confine](https://github.com/laconalabs/react-confine)). This allows for improved user experience, because the undefined/default distinction is made clear, and will not result in a loss of data as schemas change.
+- You do not need to check `validate` before calling `clean`. You still must call `validateSchema`, though.
+- Due to the fact that JSON does not allow for `undefined`, cleaning sparse arrays could result in an object with integer keys and a `length` property being generated. Such an object may look strange, but is handled in the same way by `lodash`, and prevents unnecessary overriding of `null`. For example:
+
+```js
+var schema = {type: 'array', items: {type: 'string', default: 'x'}}
+confine.clean(['a'], schema) // ['a']
+confine.normalize(['a'], schema) // ['a']
+confine.clean(['a', 42, 'c']) // {0: 'a', 2: 'c', length: 3}
+confine.normalize(['a', 42, 'c']) // ['a', 'x', 'c']
+```
+
+#### `confine.validate(obj, schema)`
+
+- Returns a `boolean` indicating if `obj` is strictly valid according to `schema`.
+- A schema being valid means that `_.isEqual(confine.normalize(obj, schema), obj)`. That is, `normalize`ing the object will not change it.
+- This method should be used rarely. In most cases, `normalize` or `clean` should be preferred.
 
 ## Confine Schemas
 
